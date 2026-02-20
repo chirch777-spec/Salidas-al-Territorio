@@ -899,6 +899,105 @@
       }
     }
 
+    /* Panel Salidas al Territorio: cards en móvil para evitar encimado */
+    @media (max-width: 640px) {
+      .table-wrapper {
+        overflow-x: visible;
+        margin: 0;
+      }
+
+      .schedule-table {
+        display: block;
+        table-layout: auto;
+        font-size: 14px;
+      }
+
+      .schedule-table thead {
+        display: none;
+      }
+
+      .schedule-table tbody tr {
+        display: block;
+        margin-bottom: 14px;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px;
+        background: var(--gray-50);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .schedule-table tbody tr:last-child {
+        margin-bottom: 0;
+      }
+
+      .schedule-table tbody tr:nth-child(even) {
+        background: var(--gray-100);
+      }
+
+      .schedule-table tbody tr.event-row {
+        border-left: 4px solid var(--yellow-dark);
+      }
+
+      .schedule-table td {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-200);
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .schedule-table td:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+        justify-content: flex-end;
+      }
+
+      .schedule-table td.schedule-row-actions {
+        padding-top: 8px;
+        margin-top: 4px;
+        border-top: 1px solid var(--gray-200);
+      }
+
+      .schedule-table td[data-label=""]::before {
+        display: none;
+      }
+
+      .schedule-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 11px;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-width: 0;
+        flex: 0 0 38%;
+        max-width: 140px;
+      }
+
+      .schedule-table td input,
+      .schedule-table td select,
+      .schedule-table td .cdd-wrap {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .schedule-table td.date-cell {
+        flex-wrap: wrap;
+      }
+
+      .schedule-table td.date-cell::before {
+        flex: 0 0 100%;
+        max-width: none;
+      }
+
+      .schedule-table .btn-row {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+    }
+
     /* ===== SCROLLBAR ===== */
     ::-webkit-scrollbar {
       width: 6px;
@@ -1719,20 +1818,20 @@
       const df = formatDateDisplay(row.date);
 
       tr.innerHTML = `
-    <td class="date-cell" style="text-align: center; padding: 10px 4px;">
+    <td class="date-cell" data-label="Fecha" style="text-align: center; padding: 10px 4px;">
       <input type="text" class="manual-date-input" value="${toDisplayDate(row.date)}"
         placeholder="DD/MM/AA"
         style="font-size:12px;font-weight:600;color:var(--cyan-dark);border:1.5px solid var(--gray-200);border-radius:var(--radius-xs);background:transparent;width:100%;"
         onchange="updateRow(${idx},'date',fromDisplayDate(this.value))" />
       <div class="date-day" style="margin-top:2px;">${df.day}</div>
     </td>
-    <td style="text-align: center;">
+    <td data-label="Hora" style="text-align: center;">
       <input type="time" value="${row.time}" style="width:100%; border:1.5px solid var(--gray-200); border-radius:var(--radius-xs);" onchange="updateRow(${idx},'time',this.value);this.blur();" />
     </td>
-    <td id="dest-cell-${idx}" style="text-align: left;">${buildCustomDropdown('dest', idx, row.destination)}</td>
-    <td id="ter-cell-${idx}" style="text-align: center;">${buildCustomDropdown('ter', idx, row.territory)}</td>
-    <td id="drv-cell-${idx}" style="text-align: left;">${buildCustomDropdown('drv', idx, row.driver)}</td>
-    <td style="text-align: right; padding-right: 15px;">
+    <td id="dest-cell-${idx}" data-label="Punto de encuentro" style="text-align: left;">${buildCustomDropdown('dest', idx, row.destination)}</td>
+    <td id="ter-cell-${idx}" data-label="Nro." style="text-align: center;">${buildCustomDropdown('ter', idx, row.territory)}</td>
+    <td id="drv-cell-${idx}" data-label="Conductor" style="text-align: left;">${buildCustomDropdown('drv', idx, row.driver)}</td>
+    <td class="schedule-row-actions" data-label="" style="text-align: right; padding-right: 15px;">
       <button class="btn-icon" onclick="removeRow(${idx})" title="Eliminar" style="margin-left: auto; display: block;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
       </button>
