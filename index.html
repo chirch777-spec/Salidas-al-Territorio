@@ -653,6 +653,14 @@
       box-shadow: var(--shadow-lg);
     }
 
+    @media (max-width: 640px) {
+      .modal-box {
+        max-width: 100%;
+        margin: 10px;
+        max-height: 85vh;
+      }
+    }
+
     .modal-header {
       display: flex;
       align-items: center;
@@ -850,6 +858,69 @@
       opacity: 0.6;
       position: relative;
       z-index: 1;
+    }
+
+    /* Vista previa flyer: responsive en móvil */
+    @media (max-width: 640px) {
+      #flyer-container {
+        padding: 12px;
+      }
+
+      .flyer-header {
+        padding: 40px 16px 16px;
+      }
+
+      .flyer-title {
+        font-size: 18px;
+        letter-spacing: 1px;
+      }
+
+      .flyer-cards-container {
+        padding: 8px 12px 20px !important;
+        gap: 12px !important;
+      }
+
+      .flyer-card {
+        flex-direction: column !important;
+        min-height: 0 !important;
+      }
+
+      .flyer-card-date {
+        width: 100% !important;
+        min-height: 0 !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        gap: 10px !important;
+        padding: 10px 14px !important;
+        border-right: none !important;
+        border-bottom: 1px solid #F1F5F9 !important;
+      }
+
+      .flyer-card-content {
+        padding: 12px 14px !important;
+        min-width: 0 !important;
+      }
+
+      .flyer-badge-row {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+
+      .flyer-time-pill {
+        flex-shrink: 0 !important;
+        padding: 6px 14px !important;
+        font-size: 16px !important;
+      }
+
+      .flyer-nro-badge {
+        margin-left: 0 !important;
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+      }
+
+      .flyer-card-dest {
+        font-size: 16px !important;
+      }
     }
 
     /* ===== CUSTOM DESTINATION DIALOG ===== */
@@ -2224,6 +2295,7 @@
       // ── Build Bento-style Cards ────────────────────────────────────
       if (rows.length > 0) {
         const container = document.createElement('div');
+        container.className = 'flyer-cards-container';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
         container.style.gap = '15px';
@@ -2240,6 +2312,7 @@
           const compactDate = toDisplayDate(row.date);
 
           const card = document.createElement('div');
+          card.className = 'flyer-card';
           card.style.background = 'white';
           card.style.borderRadius = '18px';
           card.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02)';
@@ -2256,6 +2329,7 @@
 
           // ── Left: Date Section ──
           const dateSide = document.createElement('div');
+          dateSide.className = 'flyer-card-date';
           dateSide.style.width = '85px';
           dateSide.style.display = 'flex';
           dateSide.style.flexDirection = 'column';
@@ -2279,6 +2353,7 @@
 
           // ── Right: Content Section ──
           const content = document.createElement('div');
+          content.className = 'flyer-card-content';
           content.style.flex = '1';
           content.style.padding = '15px 20px';
           content.style.display = 'flex';
@@ -2288,12 +2363,14 @@
 
           // Badges Row
           const badgeRow = document.createElement('div');
+          badgeRow.className = 'flyer-badge-row';
           badgeRow.style.display = 'flex';
           badgeRow.style.alignItems = 'center';
           badgeRow.style.gap = '8px';
 
           // Time Badge
           const timePill = document.createElement('span');
+          timePill.className = 'flyer-time-pill';
           timePill.style.background = row.isEvent ? '#FEF3C7' : '#E0F2FE';
           timePill.style.color = row.isEvent ? '#92400E' : '#0369A1';
           timePill.style.padding = '8px 20px';
@@ -2306,6 +2383,7 @@
           // Nro Badge
           if (row.territory && row.territory !== '—') {
             const nroBadge = document.createElement('span');
+            nroBadge.className = 'flyer-nro-badge';
             nroBadge.style.background = '#F1F5F9';
             nroBadge.style.color = '#475569';
             nroBadge.style.padding = '5px 12px';
@@ -2313,13 +2391,14 @@
             nroBadge.style.fontSize = '14px';
             nroBadge.style.fontWeight = '700';
             nroBadge.style.marginLeft = 'auto';
-            nroBadge.textContent = 'Territorio ' + row.territory;
+            nroBadge.textContent = 'Territ. ' + row.territory;
             badgeRow.appendChild(nroBadge);
           }
           content.appendChild(badgeRow);
 
           // Main Title (Destination)
           const destTitle = document.createElement('div');
+          destTitle.className = 'flyer-card-dest';
           destTitle.style.fontSize = '18px';
           destTitle.style.fontWeight = '800';
           destTitle.style.color = '#0F172A';
