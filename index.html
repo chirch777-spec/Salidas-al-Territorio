@@ -1756,6 +1756,37 @@
 
     const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
+    // Horario en formato 24h (00–23, 00–59)
+    function parseTime(s) {
+      if (!s || typeof s !== 'string') return { h: 9, m: 0 };
+      const parts = s.trim().split(':');
+      const h = Math.min(23, Math.max(0, parseInt(parts[0], 10) || 0));
+      const m = parts.length > 1 ? Math.min(59, Math.max(0, parseInt(parts[1], 10) || 0)) : 0;
+      return { h, m };
+    }
+    function formatTime(h, m) {
+      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    }
+    function buildHourOptions(selectedH) {
+      return Array.from({ length: 24 }, (_, i) => `<option value="${i}"${i === selectedH ? ' selected' : ''}>${String(i).padStart(2, '0')}</option>`).join('');
+    }
+    function buildMinuteOptions(selectedM) {
+      return Array.from({ length: 60 }, (_, i) => `<option value="${i}"${i === selectedM ? ' selected' : ''}>${String(i).padStart(2, '0')}</option>`).join('');
+    }
+    function applyTimeFromSelects(selectEl, idx) {
+      const tr = selectEl.closest('tr');
+      const h = tr.querySelector('.schedule-time-h').value;
+      const m = tr.querySelector('.schedule-time-m').value;
+      updateRow(idx, 'time', formatTime(parseInt(h, 10), parseInt(m, 10)));
+    }
+    function applyDayTime(selectEl) {
+      const row = selectEl.closest('[data-day]');
+      const d = parseInt(row.getAttribute('data-day'), 10);
+      const h = row.querySelector('.day-time-h').value;
+      const m = row.querySelector('.day-time-m').value;
+      appData.dayTimes[d] = formatTime(parseInt(h, 10), parseInt(m, 10));
+    }
+
     function renderDayTimePickers() {
       const container = document.getElementById('day-times-container');
       const checked = [];
@@ -1763,13 +1794,17 @@
         checked.push(parseInt(cb.value));
       });
       if (checked.length === 0) { container.innerHTML = ''; return; }
-      container.innerHTML = '<label style="margin-bottom:8px;">Horario por día</label>' +
+      container.innerHTML = '<label style="margin-bottom:8px;">Horario por día (24 h)</label>' +
         '<div style="display:flex;flex-wrap:wrap;gap:8px;">' +
         checked.map(d => {
-          const val = appData.dayTimes[d] || '09:00';
-          return `<div style="display:flex;align-items:center;gap:6px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:var(--radius-xs);padding:6px 10px;">
+          const { h, m } = parseTime(appData.dayTimes[d] || '09:00');
+          const hourOpts = buildHourOptions(h);
+          const minOpts = buildMinuteOptions(m);
+          return `<div data-day="${d}" style="display:flex;align-items:center;gap:6px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:var(--radius-xs);padding:6px 10px;">
             <span style="font-size:12px;font-weight:600;color:var(--cyan-dark);min-width:24px;">${DAY_NAMES[d]}</span>
-            <input type="time" value="${val}" style="width:100px;" onchange="appData.dayTimes[${d}]=this.value" />
+            <select class="day-time-h" style="width:52px;padding:6px 4px;font-size:13px;border:1.5px solid var(--gray-200);border-radius:var(--radius-xs);background:var(--gray-50);color:var(--gray-900);" onchange="applyDayTime(this)">${hourOpts}</select>
+            <span style="color:var(--gray-500);">:</span>
+            <select class="day-time-m" style="width:52px;padding:6px 4px;font-size:13px;border:1.5px solid var(--gray-200);border-radius:var(--radius-xs);background:var(--gray-50);color:var(--gray-900);" onchange="applyDayTime(this)">${minOpts}</select>
           </div>`;
         }).join('') + '</div>';
     }
@@ -1800,10 +1835,12 @@
         return;
       }
 
-      // Collect day times from pickers
-      document.querySelectorAll('#day-times-container input[type="time"]').forEach(inp => {
-        const d = parseInt(inp.getAttribute('onchange').match(/\d+/)[0]);
-        appData.dayTimes[d] = inp.value;
+      // Collect day times from pickers (24h)
+      document.querySelectorAll('#day-times-container [data-day]').forEach(row => {
+        const d = parseInt(row.getAttribute('data-day'), 10);
+        const h = row.querySelector('.day-time-h');
+        const m = row.querySelector('.day-time-m');
+        if (h && m) appData.dayTimes[d] = formatTime(parseInt(h.value, 10), parseInt(m.value, 10));
       });
 
       appData.month = month;
@@ -1887,6 +1924,9 @@
       const tr = document.createElement('tr');
       if (row.isEvent) tr.classList.add('event-row');
       const df = formatDateDisplay(row.date);
+      const { h: timeH, m: timeM } = parseTime(row.time || '09:00');
+      const timeHourOpts = buildHourOptions(timeH);
+      const timeMinOpts = buildMinuteOptions(timeM);
 
       tr.innerHTML = `
     <td class="date-cell" data-label="Fecha" style="text-align: center; padding: 10px 4px;">
@@ -1897,7 +1937,11 @@
       <div class="date-day" style="margin-top:2px;">${df.day}</div>
     </td>
     <td data-label="Hora" style="text-align: center;">
-      <input type="time" value="${row.time}" style="width:100%; border:1.5px solid var(--gray-200); border-radius:var(--radius-xs);" onchange="updateRow(${idx},'time',this.value);this.blur();" />
+      <div style="display:inline-flex;align-items:center;gap:2px;">
+        <select class="schedule-time-h" style="width:52px;padding:6px 4px;font-size:12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-xs);background:var(--gray-50);color:var(--gray-900);" onchange="applyTimeFromSelects(this,${idx})">${timeHourOpts}</select>
+        <span style="color:var(--gray-500);font-weight:700;">:</span>
+        <select class="schedule-time-m" style="width:52px;padding:6px 4px;font-size:12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-xs);background:var(--gray-50);color:var(--gray-900);" onchange="applyTimeFromSelects(this,${idx})">${timeMinOpts}</select>
+      </div>
     </td>
     <td id="dest-cell-${idx}" data-label="Punto de encuentro" style="text-align: left;">${buildCustomDropdown('dest', idx, row.destination)}</td>
     <td id="ter-cell-${idx}" data-label="Nro." style="text-align: center;">${buildCustomDropdown('ter', idx, row.territory)}</td>
@@ -1936,8 +1980,8 @@
           <div class="cdd-item" data-val="${escHtml(item)}">
             <span class="cdd-item-label" onclick="selectDropdownItem('${type}',${idx},'${escHtml(item).replace(/'/g, "\\'")}')">${escHtml(item)}</span>
             <span class="cdd-item-actions">
-              ${type !== 'ter' ? `<button type="button" title="Editar" onclick="editListItem('${type}',${i},'${escHtml(item).replace(/'/g, "\\'")}')">✏️</button>` : ''}
-              <button type="button" title="Eliminar" onclick="deleteListItem('${type}',${i},${idx})">🗑️</button>
+              <button type="button" title="Modificar" onclick="event.stopPropagation(); editListItem('${type}',${i},'${escHtml(item).replace(/'/g, "\\'")}')">✏️</button>
+              <button type="button" title="Eliminar" onclick="event.stopPropagation(); deleteListItem('${type}',${i},${idx})">🗑️</button>
             </span>
           </div>`).join('')}
         <div class="cdd-item cdd-add" onclick="addNewListItem('${type}',${idx})">➕ Agregar nuevo...</div>
@@ -2018,7 +2062,7 @@
     }
 
     function deleteListItem(type, itemIdx, rowIdx) {
-      const items = type === 'dest' ? allDests() : allDrivers();
+      const items = type === 'dest' ? allDests() : (type === 'ter' ? allTerritories() : allDrivers());
       const val = items[itemIdx];
       if (!val) return;
       const isDefault = type === 'dest' ? DEFAULT_DESTINATIONS.includes(val) : (type === 'ter' ? DEFAULT_TERRITORIES.includes(val) : DEFAULT_DRIVERS.includes(val));
@@ -2162,8 +2206,9 @@
       const rows = document.querySelectorAll('#schedule-tbody tr');
       rows.forEach((tr, idx) => {
         if (!appData.schedule[idx]) return;
-        const timeInput = tr.querySelector('input[type="time"]');
-        if (timeInput) appData.schedule[idx].time = timeInput.value;
+        const hSel = tr.querySelector('.schedule-time-h');
+        const mSel = tr.querySelector('.schedule-time-m');
+        if (hSel && mSel) appData.schedule[idx].time = formatTime(parseInt(hSel.value, 10), parseInt(mSel.value, 10));
         // Custom dropdowns store values directly in appData via selectDropdownItem/updateRow
       });
     }
