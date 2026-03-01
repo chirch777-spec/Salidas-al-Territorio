@@ -2538,10 +2538,19 @@
       showToast('⏳ Generando imagen...', '');
 
       try {
+        // Escalar el flyer para que encaje dentro de 1080x1920 manteniendo proporciones
+        const flyerWidth = flyerEl.offsetWidth || 540;
+        const flyerHeight = flyerEl.offsetHeight || 960;
+        const targetW = 1080;
+        const targetH = 1920;
+        const scaleX = targetW / flyerWidth;
+        const scaleY = targetH / flyerHeight;
+        const scale = Math.min(scaleX, scaleY, 3); // límite razonable de escala
+
         const canvas = await html2canvas(flyerEl, {
-          scale: 2,
+          scale,
           useCORS: true,
-          backgroundColor: '#FFFFFF', // White background for JPG
+          backgroundColor: '#FFFFFF', // White background para JPG
           logging: false
         });
 
